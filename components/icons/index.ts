@@ -1,0 +1,11 @@
+export { default as HomeIcon } from './HomeIcon';
+export { default as PaymentsIcon } from './PaymentsIcon';
+export { default as OrdersIcon } from './OrdersIcon';
+export { default as MoreIcon } from './MoreIcon';
+export { default as CalcIcon } from './CalcIcon';
+export { default as PlusIcon } from './PlusIcon';
+export { default as MinusIcon } from './MinusIcon';
+export { default as DivideIcon } from './DivideIcon';
+export { default as MultiplyIcon } from './MultiplyIcon';
+export { default as EditIcon } from './EditIcon';
+export { default as TrashIcon } from './TrashIcon';
