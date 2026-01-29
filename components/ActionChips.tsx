@@ -64,11 +64,11 @@ function Chip({ label, onPress }: { label: string; onPress?: () => void }) {
 function CustomerChip({ customer, onPress }: { customer: Customer; onPress?: () => void }) {
   const displayName = customer.name || customer.email || customer.phone || 'Customer';
   return (
-    <TouchableOpacity style={styles.chip} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.chip, { flexShrink: 0 }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.selectedChipInner}>
         <View style={styles.textAndIcon}>
           <UserIcon size={13.5} color={colors.textPrimary} />
-          <Text style={styles.chipText} numberOfLines={1}>{displayName}</Text>
+          <Text style={styles.chipText}>{displayName}</Text>
         </View>
       </View>
     </TouchableOpacity>

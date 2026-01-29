@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, Animated, Easing, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Animated, Easing, useWindowDimensions, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../constants/colors';
@@ -98,11 +98,11 @@ function PaymentMethodChip({ method, onPress, initial = false }: { method: Payme
 function CustomerChip({ customer, onPress, initial = false }: { customer: Customer; onPress?: () => void; initial?: boolean }) {
   const displayName = customer.name || customer.email || customer.phone || 'Customer';
   return (
-    <TouchableOpacity style={initial ? styles.initialChip : styles.selectedChip} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[initial ? styles.initialChip : styles.selectedChip, { flexShrink: 0 }]} onPress={onPress} activeOpacity={0.7}>
       <View style={initial ? styles.initialSelectedChipInner : styles.selectedChipInner}>
         <View style={styles.textAndIcon}>
           <UserIcon size={initial ? 14 : 16} color={colors.textPrimary} />
-          <Text style={initial ? styles.initialChipText : styles.chipText} numberOfLines={1}>{displayName}</Text>
+          <Text style={initial ? styles.initialChipText : styles.chipText}>{displayName}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -217,17 +217,23 @@ export default function FloatingPayCard({
     return (
       <View style={styles.initialWrapper}>
         {/* Simple chips row */}
-        <View style={styles.initialChipsRow}>
-          {selectedPaymentMethod ? (
-            <PaymentMethodChip method={selectedPaymentMethod} onPress={onPaymentMethod} initial />
-          ) : (
-            <Chip label="Payment Method" onPress={onPaymentMethod} initial />
-          )}
-          {selectedCustomer ? (
-            <CustomerChip customer={selectedCustomer} onPress={onCustomer} initial />
-          ) : (
-            <Chip label="Customer" onPress={onCustomer} initial />
-          )}
+        <View style={styles.initialChipsRowWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.initialChipsRow}
+          >
+            {selectedPaymentMethod ? (
+              <PaymentMethodChip method={selectedPaymentMethod} onPress={onPaymentMethod} initial />
+            ) : (
+              <Chip label="Payment Method" onPress={onPaymentMethod} initial />
+            )}
+            {selectedCustomer ? (
+              <CustomerChip customer={selectedCustomer} onPress={onCustomer} initial />
+            ) : (
+              <Chip label="Customer" onPress={onCustomer} initial />
+            )}
+          </ScrollView>
           {/* More chip with gradient fade */}
           <View style={styles.moreChipWrapper}>
             <LinearGradient
@@ -261,18 +267,24 @@ export default function FloatingPayCard({
             {/* Collapsed chips - fade out */}
             <Animated.View
               pointerEvents={surchargeExpanded ? 'none' : 'auto'}
-              style={[styles.chipsLeft, { opacity: chipsLeftOpacity }]}
+              style={[styles.chipsLeftWrapper, { opacity: chipsLeftOpacity }]}
             >
-              {selectedPaymentMethod ? (
-                <PaymentMethodChip method={selectedPaymentMethod} onPress={onPaymentMethod} />
-              ) : (
-                <Chip label="Payment Method" onPress={onPaymentMethod} />
-              )}
-              {selectedCustomer ? (
-                <CustomerChip customer={selectedCustomer} onPress={onCustomer} />
-              ) : (
-                <Chip label="Customer" onPress={onCustomer} />
-              )}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsLeft}
+              >
+                {selectedPaymentMethod ? (
+                  <PaymentMethodChip method={selectedPaymentMethod} onPress={onPaymentMethod} />
+                ) : (
+                  <Chip label="Payment Method" onPress={onPaymentMethod} />
+                )}
+                {selectedCustomer ? (
+                  <CustomerChip customer={selectedCustomer} onPress={onCustomer} />
+                ) : (
+                  <Chip label="Customer" onPress={onCustomer} />
+                )}
+              </ScrollView>
             </Animated.View>
 
             {/* More chip - animates position from right to left */}
@@ -377,10 +389,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     gap: 8,
   },
+  initialChipsRowWrapper: {
+    position: 'relative',
+    flexDirection: 'row',
+  },
   initialChipsRow: {
     flexDirection: 'row',
     gap: 2,
-    paddingHorizontal: 16,
+    paddingRight: 80,
   },
   initialChip: {
     backgroundColor: 'rgba(242,242,244,0.86)',
@@ -479,9 +495,13 @@ const styles = StyleSheet.create({
     borderBottomColor: 'white',
     position: 'relative', // Enable absolute positioning for children
   },
+  chipsLeftWrapper: {
+    flex: 1,
+  },
   chipsLeft: {
     flexDirection: 'row',
     gap: 2,
+    paddingRight: 60,
   },
   chip: {
     backgroundColor: '#f8f9fc',
