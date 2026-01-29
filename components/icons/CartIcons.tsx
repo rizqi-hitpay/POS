@@ -241,3 +241,31 @@ export function AddPaymentIcon({ size = 38, color = '#2465DE' }: IconProps) {
     </Svg>
   );
 }
+
+export function ChevronUpIcon({ size = 16, color = '#03102F' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <Path
+        d="M12 10L8 6L4 10"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ChevronDownIcon({ size = 16, color = '#03102F' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <Path
+        d="M4 6L8 10L12 6"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

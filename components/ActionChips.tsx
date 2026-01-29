@@ -87,7 +87,10 @@ export default function ActionChips({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          (selectedPaymentMethod || selectedCustomer) && { paddingLeft: 0 }
+        ]}
       >
         {selectedPaymentMethod ? (
           <PaymentMethodChip method={selectedPaymentMethod} onPress={onPaymentMethod} />

@@ -8,11 +8,13 @@ import DescriptionInput from '../components/DescriptionInput';
 import Keypad from '../components/Keypad';
 import ActionChips from '../components/ActionChips';
 import PayButtonRow from '../components/PayButtonRow';
+import FloatingPayCard from '../components/FloatingPayCard';
 import ProductsView from '../components/ProductsView';
 import OperatorActionSheet from '../components/OperatorActionSheet';
 import PaymentMethodSheet, { PaymentMethod } from '../components/PaymentMethodSheet';
 import CustomerSheet, { Customer } from '../components/CustomerSheet';
 import CartSheet from '../components/CartSheet';
+import SettingsSheet from '../components/SettingsSheet';
 import useKeypadInput, { Operator } from '../hooks/useKeypadInput';
 
 const STACKED_SCALE = 327 / 375; // ~0.87
@@ -29,6 +31,8 @@ export default function HomeScreen() {
   const [customerSheetVisible, setCustomerSheetVisible] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [cartSheetVisible, setCartSheetVisible] = useState(false);
+  const [settingsSheetVisible, setSettingsSheetVisible] = useState(false);
+  const [includeAdditionalDetail, setIncludeAdditionalDetail] = useState(false);
 
   // Animation values for stacked modal effect (payment/customer sheets)
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -37,9 +41,9 @@ export default function HomeScreen() {
   // Animation value for cart push transition
   const translateXAnim = useRef(new Animated.Value(0)).current;
 
-  // Stacked modal effect for payment/customer sheets
+  // Stacked modal effect for payment/customer/settings sheets
   useEffect(() => {
-    const stackedSheetVisible = paymentSheetVisible || customerSheetVisible;
+    const stackedSheetVisible = paymentSheetVisible || customerSheetVisible || settingsSheetVisible;
     if (stackedSheetVisible) {
       Animated.parallel([
         Animated.timing(scaleAnim, {
@@ -77,7 +81,7 @@ export default function HomeScreen() {
         }),
       ]).start();
     }
-  }, [paymentSheetVisible, customerSheetVisible, cartSheetVisible, scaleAnim, borderRadiusAnim, translateYAnim]);
+  }, [paymentSheetVisible, customerSheetVisible, settingsSheetVisible, cartSheetVisible, scaleAnim, borderRadiusAnim, translateYAnim]);
 
   // Push/slide transition for cart sheet
   useEffect(() => {
@@ -172,6 +176,14 @@ export default function HomeScreen() {
     console.log('Charge pressed', { cents, expression, description, selectedPaymentMethod, selectedCustomer });
   }, [cents, expression, description, selectedPaymentMethod, selectedCustomer]);
 
+  const handleOpenSettingsSheet = useCallback(() => {
+    setSettingsSheetVisible(true);
+  }, []);
+
+  const handleCloseSettingsSheet = useCallback(() => {
+    setSettingsSheetVisible(false);
+  }, []);
+
   return (
     <View style={styles.rootContainer}>
       <Animated.View
@@ -188,7 +200,11 @@ export default function HomeScreen() {
         ]}
       >
         <SafeAreaView style={styles.container} edges={['top']}>
-          <Header selectedTab={selectedTab} onTabChange={setSelectedTab} />
+          <Header
+            selectedTab={selectedTab}
+            onTabChange={setSelectedTab}
+            onProfilePress={handleOpenSettingsSheet}
+          />
 
           {selectedTab === 'keypad' ? (
             <View style={styles.content}>
@@ -205,19 +221,35 @@ export default function HomeScreen() {
                 />
               </View>
               <View style={styles.bottomSection}>
-                <ActionChips
-                  onPaymentMethod={handleOpenPaymentSheet}
-                  onCustomer={handleOpenCustomerSheet}
-                  onMore={handleOpenCartSheet}
-                  selectedPaymentMethod={selectedPaymentMethod}
-                  selectedCustomer={selectedCustomer}
-                />
-                <PayButtonRow
-                  amount={cents}
-                  disabled={cents === 0}
-                  onPay={handlePay}
-                  onClear={handleClearAll}
-                />
+                {includeAdditionalDetail ? (
+                  <FloatingPayCard
+                    amount={cents}
+                    disabled={cents === 0}
+                    onPay={handlePay}
+                    onClear={handleClearAll}
+                    onPaymentMethod={handleOpenPaymentSheet}
+                    onCustomer={handleOpenCustomerSheet}
+                    onMore={handleOpenCartSheet}
+                    selectedPaymentMethod={selectedPaymentMethod}
+                    selectedCustomer={selectedCustomer}
+                  />
+                ) : (
+                  <>
+                    <ActionChips
+                      onPaymentMethod={handleOpenPaymentSheet}
+                      onCustomer={handleOpenCustomerSheet}
+                      onMore={handleOpenCartSheet}
+                      selectedPaymentMethod={selectedPaymentMethod}
+                      selectedCustomer={selectedCustomer}
+                    />
+                    <PayButtonRow
+                      amount={cents}
+                      disabled={cents === 0}
+                      onPay={handlePay}
+                      onClear={handleClearAll}
+                    />
+                  </>
+                )}
               </View>
               <OperatorActionSheet
                 visible={actionSheetVisible}
@@ -254,6 +286,13 @@ export default function HomeScreen() {
         onChangePaymentMethod={handleOpenPaymentSheet}
         onChangeCustomer={handleOpenCustomerSheet}
         onRemoveCustomer={handleRemoveCustomer}
+      />
+
+      <SettingsSheet
+        visible={settingsSheetVisible}
+        onClose={handleCloseSettingsSheet}
+        includeAdditionalDetail={includeAdditionalDetail}
+        onToggleAdditionalDetail={setIncludeAdditionalDetail}
       />
     </View>
   );

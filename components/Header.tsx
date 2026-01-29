@@ -1,19 +1,20 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors } from '../constants/colors';
 import SegmentedControl from './SegmentedControl';
 
 interface HeaderProps {
   selectedTab: 'keypad' | 'products';
   onTabChange: (tab: 'keypad' | 'products') => void;
+  onProfilePress?: () => void;
 }
 
-export default function Header({ selectedTab, onTabChange }: HeaderProps) {
+export default function Header({ selectedTab, onTabChange, onProfilePress }: HeaderProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.avatar}>
+      <TouchableOpacity style={styles.avatar} onPress={onProfilePress} activeOpacity={0.7}>
         <Text style={styles.avatarText}>Locally</Text>
-      </View>
+      </TouchableOpacity>
       <SegmentedControl
         selectedTab={selectedTab}
         onTabChange={onTabChange}
