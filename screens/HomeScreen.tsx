@@ -15,6 +15,9 @@ import PaymentMethodSheet, { PaymentMethod } from '../components/PaymentMethodSh
 import CustomerSheet, { Customer } from '../components/CustomerSheet';
 import CartSheet from '../components/CartSheet';
 import SettingsSheet from '../components/SettingsSheet';
+import InitiatingPaymentSheet from '../components/InitiatingPaymentSheet';
+import TerminalPaymentSheet from '../components/TerminalPaymentSheet';
+import PaymentSuccessSheet from '../components/PaymentSuccessSheet';
 import useKeypadInput, { Operator } from '../hooks/useKeypadInput';
 
 const STACKED_SCALE = 327 / 375; // ~0.87
@@ -33,6 +36,10 @@ export default function HomeScreen() {
   const [cartSheetVisible, setCartSheetVisible] = useState(false);
   const [settingsSheetVisible, setSettingsSheetVisible] = useState(false);
   const [includeAdditionalDetail, setIncludeAdditionalDetail] = useState(false);
+  const [initiatingPaymentVisible, setInitiatingPaymentVisible] = useState(false);
+  const [terminalPaymentVisible, setTerminalPaymentVisible] = useState(false);
+  const [paymentSuccessVisible, setPaymentSuccessVisible] = useState(false);
+  const [shouldReopenCart, setShouldReopenCart] = useState(false);
 
   // Animation values for stacked modal effect (payment/customer sheets)
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -111,9 +118,38 @@ export default function HomeScreen() {
   } = useKeypadInput();
 
   const handlePay = () => {
-    // Always open cart sheet when Pay button is clicked
-    setCartSheetVisible(true);
+    if (selectedPaymentMethod) {
+      // Payment method selected → show loading then payment
+      setInitiatingPaymentVisible(true);
+    } else {
+      // No payment method → go to cart
+      setCartSheetVisible(true);
+    }
   };
+
+  const handleInitiatingComplete = useCallback(() => {
+    setInitiatingPaymentVisible(false);
+    setTerminalPaymentVisible(true);
+  }, []);
+
+  const handlePaymentSuccess = useCallback(() => {
+    setTerminalPaymentVisible(false);
+    setPaymentSuccessVisible(true);
+  }, []);
+
+  const handleSuccessComplete = useCallback(() => {
+    setPaymentSuccessVisible(false);
+    // Clear amount and reset to HomeScreen
+    handleClear();
+    setDescription('');
+    setSelectedPaymentMethod(null);
+    setSelectedCustomer(null);
+  }, [handleClear]);
+
+  const handlePaymentCancel = useCallback(() => {
+    setTerminalPaymentVisible(false);
+    // Return to HomeScreen with amount preserved
+  }, []);
 
   const handleClearAll = useCallback(() => {
     handleClear();
@@ -142,7 +178,13 @@ export default function HomeScreen() {
 
   const handleClosePaymentSheet = useCallback(() => {
     setPaymentSheetVisible(false);
-  }, []);
+    if (shouldReopenCart) {
+      setTimeout(() => {
+        setCartSheetVisible(true);
+        setShouldReopenCart(false);
+      }, 100);
+    }
+  }, [shouldReopenCart]);
 
   const handleSelectPaymentMethod = useCallback((method: PaymentMethod) => {
     setSelectedPaymentMethod(method);
@@ -154,10 +196,32 @@ export default function HomeScreen() {
 
   const handleCloseCustomerSheet = useCallback(() => {
     setCustomerSheetVisible(false);
-  }, []);
+    if (shouldReopenCart) {
+      setTimeout(() => {
+        setCartSheetVisible(true);
+        setShouldReopenCart(false);
+      }, 100);
+    }
+  }, [shouldReopenCart]);
 
   const handleSelectCustomer = useCallback((customer: Customer) => {
     setSelectedCustomer(customer);
+  }, []);
+
+  const handleOpenPaymentSheetFromCart = useCallback(() => {
+    setCartSheetVisible(false);
+    setShouldReopenCart(true);
+    setTimeout(() => {
+      setPaymentSheetVisible(true);
+    }, 100);
+  }, []);
+
+  const handleOpenCustomerSheetFromCart = useCallback(() => {
+    setCartSheetVisible(false);
+    setShouldReopenCart(true);
+    setTimeout(() => {
+      setCustomerSheetVisible(true);
+    }, 100);
   }, []);
 
   const handleOpenCartSheet = useCallback(() => {
@@ -283,8 +347,8 @@ export default function HomeScreen() {
         paymentMethod={selectedPaymentMethod}
         customer={selectedCustomer}
         onCharge={handleCharge}
-        onChangePaymentMethod={handleOpenPaymentSheet}
-        onChangeCustomer={handleOpenCustomerSheet}
+        onChangePaymentMethod={handleOpenPaymentSheetFromCart}
+        onChangeCustomer={handleOpenCustomerSheetFromCart}
         onRemoveCustomer={handleRemoveCustomer}
       />
 
@@ -293,6 +357,24 @@ export default function HomeScreen() {
         onClose={handleCloseSettingsSheet}
         includeAdditionalDetail={includeAdditionalDetail}
         onToggleAdditionalDetail={setIncludeAdditionalDetail}
+      />
+
+      <InitiatingPaymentSheet
+        visible={initiatingPaymentVisible}
+        onComplete={handleInitiatingComplete}
+      />
+
+      <TerminalPaymentSheet
+        visible={terminalPaymentVisible}
+        amount={cents}
+        onCancel={handlePaymentCancel}
+        onSuccess={handlePaymentSuccess}
+      />
+
+      <PaymentSuccessSheet
+        visible={paymentSuccessVisible}
+        amount={cents}
+        onComplete={handleSuccessComplete}
       />
     </View>
   );
