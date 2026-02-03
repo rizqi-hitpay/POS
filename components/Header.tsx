@@ -15,11 +15,11 @@ export default function Header({ selectedTab, onTabChange, onProfilePress }: Hea
       <TouchableOpacity style={styles.avatar} onPress={onProfilePress} activeOpacity={0.7}>
         <Text style={styles.avatarText}>Locally</Text>
       </TouchableOpacity>
+      <View style={styles.placeholder} />
       <SegmentedControl
         selectedTab={selectedTab}
         onTabChange={onTabChange}
       />
-      <View style={styles.placeholder} />
     </View>
   );
 }
