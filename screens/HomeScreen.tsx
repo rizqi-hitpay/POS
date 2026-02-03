@@ -237,8 +237,11 @@ export default function HomeScreen() {
   }, []);
 
   const handleCharge = useCallback(() => {
-    console.log('Charge pressed', { cents, expression, description, selectedPaymentMethod, selectedCustomer });
-  }, [cents, expression, description, selectedPaymentMethod, selectedCustomer]);
+    setCartSheetVisible(false);
+    setTimeout(() => {
+      setInitiatingPaymentVisible(true);
+    }, 100);
+  }, []);
 
   const handleOpenSettingsSheet = useCallback(() => {
     setSettingsSheetVisible(true);
