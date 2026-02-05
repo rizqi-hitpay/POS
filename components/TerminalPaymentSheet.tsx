@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Image,
   Modal,
   StyleSheet,
   Text,
@@ -11,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../constants/colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface TerminalPaymentSheetProps {
   visible: boolean;
@@ -94,28 +95,34 @@ export default function TerminalPaymentSheet({
             },
           ]}
         >
-          {/* Total Amount Header */}
+          {/* Terminal Image - Behind everything */}
+          <TouchableOpacity
+            onPress={handleTerminalPress}
+            activeOpacity={0.9}
+            style={styles.terminalTouchable}
+          >
+            <Animated.View
+              style={[
+                styles.terminalContainer,
+                { transform: [{ scale: terminalScale }] },
+              ]}
+            >
+              <Image
+                source={require('../assets/Terminal.png')}
+                style={styles.terminalImage}
+                resizeMode="contain"
+              />
+            </Animated.View>
+          </TouchableOpacity>
+
+          {/* Total Amount Header - On top of image */}
           <View style={styles.header}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalAmount}>{formatTotal(amount)}</Text>
           </View>
 
-          {/* Terminal Area */}
-          <View style={styles.content}>
-            <TouchableOpacity
-              onPress={handleTerminalPress}
-              activeOpacity={0.9}
-              style={styles.terminalTouchable}
-            >
-              <Animated.View
-                style={[
-                  styles.terminalContainer,
-                  { transform: [{ scale: terminalScale }] },
-                ]}
-              >
-                <TerminalIllustration />
-              </Animated.View>
-            </TouchableOpacity>
+          {/* Instruction - On top of image */}
+          <View style={styles.instructionContainer}>
             <Text style={styles.instruction}>Tap the card on the terminal</Text>
           </View>
 
@@ -135,35 +142,6 @@ export default function TerminalPaymentSheet({
   );
 }
 
-function TerminalIllustration() {
-  return (
-    <View style={styles.terminal}>
-      {/* Terminal body */}
-      <View style={styles.terminalBody}>
-        {/* Screen area */}
-        <View style={styles.terminalScreen}>
-          <View style={styles.screenLine} />
-          <View style={[styles.screenLine, styles.screenLineShort]} />
-        </View>
-        {/* Keypad area */}
-        <View style={styles.terminalKeypad}>
-          {Array.from({ length: 12 }, (_, i) => (
-            <View key={i} style={styles.keypadButton} />
-          ))}
-        </View>
-        {/* Card slot indicator */}
-        <View style={styles.cardSlot} />
-      </View>
-      {/* Contactless icon */}
-      <View style={styles.contactlessIcon}>
-        <View style={styles.contactlessWave1} />
-        <View style={styles.contactlessWave2} />
-        <View style={styles.contactlessWave3} />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -180,6 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 32,
     paddingBottom: 24,
+    zIndex: 1,
   },
   totalLabel: {
     fontSize: 16,
@@ -193,20 +172,30 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     letterSpacing: -1,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 48,
-  },
   terminalTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   terminalContainer: {
+    width: '100%',
     alignItems: 'center',
   },
+  terminalImage: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT * 0.6,
+  },
+  instructionContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 40,
+    zIndex: 1,
+  },
   instruction: {
-    marginTop: 32,
     fontSize: 16,
     fontWeight: '500',
     color: colors.textPrimary,
@@ -215,6 +204,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingBottom: 16,
+    zIndex: 1,
   },
   cancelButton: {
     height: 48,
@@ -229,98 +219,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#E53935',
-  },
-  // Terminal illustration styles
-  terminal: {
-    alignItems: 'center',
-  },
-  terminalBody: {
-    width: 140,
-    height: 200,
-    backgroundColor: colors.grey100,
-    borderRadius: 16,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.grey300,
-  },
-  terminalScreen: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#E8F5E9',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
-    justifyContent: 'center',
-    gap: 6,
-  },
-  screenLine: {
-    height: 8,
-    backgroundColor: '#81C784',
-    borderRadius: 4,
-  },
-  screenLineShort: {
-    width: '60%',
-  },
-  terminalKeypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: 90,
-    gap: 6,
-    justifyContent: 'center',
-  },
-  keypadButton: {
-    width: 24,
-    height: 20,
-    backgroundColor: colors.grey300,
-    borderRadius: 4,
-  },
-  cardSlot: {
-    position: 'absolute',
-    bottom: 8,
-    width: 40,
-    height: 6,
-    backgroundColor: colors.textPrimary,
-    borderRadius: 3,
-  },
-  contactlessIcon: {
-    marginTop: 16,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  contactlessWave1: {
-    position: 'absolute',
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.primaryBlue,
-    borderLeftColor: 'transparent',
-    borderBottomColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
-  },
-  contactlessWave2: {
-    position: 'absolute',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.primaryBlue,
-    borderLeftColor: 'transparent',
-    borderBottomColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
-  },
-  contactlessWave3: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.primaryBlue,
-    borderLeftColor: 'transparent',
-    borderBottomColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
   },
 });
