@@ -15,7 +15,6 @@ import PaymentMethodSheet, { PaymentMethod } from '../components/PaymentMethodSh
 import CustomerSheet, { Customer } from '../components/CustomerSheet';
 import CartSheet from '../components/CartSheet';
 import SettingsSheet from '../components/SettingsSheet';
-import InitiatingPaymentSheet from '../components/InitiatingPaymentSheet';
 import TerminalPaymentSheet from '../components/TerminalPaymentSheet';
 import PaymentSuccessSheet from '../components/PaymentSuccessSheet';
 import useKeypadInput, { Operator } from '../hooks/useKeypadInput';
@@ -36,7 +35,7 @@ export default function HomeScreen() {
   const [cartSheetVisible, setCartSheetVisible] = useState(false);
   const [settingsSheetVisible, setSettingsSheetVisible] = useState(false);
   const [includeAdditionalDetail, setIncludeAdditionalDetail] = useState(false);
-  const [initiatingPaymentVisible, setInitiatingPaymentVisible] = useState(false);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [terminalPaymentVisible, setTerminalPaymentVisible] = useState(false);
   const [paymentSuccessVisible, setPaymentSuccessVisible] = useState(false);
   const [shouldReopenCart, setShouldReopenCart] = useState(false);
@@ -48,9 +47,9 @@ export default function HomeScreen() {
   // Animation value for cart push transition
   const translateXAnim = useRef(new Animated.Value(0)).current;
 
-  // Stacked modal effect for payment/customer/settings sheets
+  // Stacked modal effect for settings sheet only (customer/payment sheets show without scaling)
   useEffect(() => {
-    const stackedSheetVisible = paymentSheetVisible || customerSheetVisible || settingsSheetVisible;
+    const stackedSheetVisible = settingsSheetVisible;
     if (stackedSheetVisible) {
       Animated.parallel([
         Animated.timing(scaleAnim, {
@@ -88,7 +87,7 @@ export default function HomeScreen() {
         }),
       ]).start();
     }
-  }, [paymentSheetVisible, customerSheetVisible, settingsSheetVisible, cartSheetVisible, scaleAnim, borderRadiusAnim, translateYAnim]);
+  }, [settingsSheetVisible, cartSheetVisible, scaleAnim, borderRadiusAnim, translateYAnim]);
 
   // Push/slide transition for cart sheet
   useEffect(() => {
@@ -119,18 +118,24 @@ export default function HomeScreen() {
 
   const handlePay = () => {
     if (selectedPaymentMethod) {
-      // Payment method selected → show loading then payment
-      setInitiatingPaymentVisible(true);
+      // Payment method selected → show loading state in button
+      setIsPaymentLoading(true);
     } else {
       // No payment method → go to cart
       setCartSheetVisible(true);
     }
   };
 
-  const handleInitiatingComplete = useCallback(() => {
-    setInitiatingPaymentVisible(false);
-    setTerminalPaymentVisible(true);
-  }, []);
+  // Effect to handle payment loading timeout and transition to TerminalPaymentSheet
+  useEffect(() => {
+    if (isPaymentLoading) {
+      const timer = setTimeout(() => {
+        setIsPaymentLoading(false);
+        setTerminalPaymentVisible(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isPaymentLoading]);
 
   const handlePaymentSuccess = useCallback(() => {
     setTerminalPaymentVisible(false);
@@ -239,7 +244,7 @@ export default function HomeScreen() {
   const handleCharge = useCallback(() => {
     setCartSheetVisible(false);
     setTimeout(() => {
-      setInitiatingPaymentVisible(true);
+      setIsPaymentLoading(true);
     }, 100);
   }, []);
 
@@ -292,6 +297,7 @@ export default function HomeScreen() {
                   <FloatingPayCard
                     amount={cents}
                     disabled={cents === 0}
+                    isLoading={isPaymentLoading}
                     onPay={handlePay}
                     onClear={handleClearAll}
                     onPaymentMethod={handleOpenPaymentSheet}
@@ -312,6 +318,7 @@ export default function HomeScreen() {
                     <PayButtonRow
                       amount={cents}
                       disabled={cents === 0}
+                      isLoading={isPaymentLoading}
                       onPay={handlePay}
                       onClear={handleClearAll}
                     />
@@ -360,11 +367,6 @@ export default function HomeScreen() {
         onClose={handleCloseSettingsSheet}
         includeAdditionalDetail={includeAdditionalDetail}
         onToggleAdditionalDetail={setIncludeAdditionalDetail}
-      />
-
-      <InitiatingPaymentSheet
-        visible={initiatingPaymentVisible}
-        onComplete={handleInitiatingComplete}
       />
 
       <TerminalPaymentSheet

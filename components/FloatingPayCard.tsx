@@ -13,6 +13,7 @@ import { UserIcon } from './icons/CustomerIcons';
 interface FloatingPayCardProps {
   amount: number;
   disabled: boolean;
+  isLoading?: boolean;
   onPay: () => void;
   onClear: () => void;
   onPaymentMethod: () => void;
@@ -112,6 +113,7 @@ function CustomerChip({ customer, onPress, initial = false }: { customer: Custom
 export default function FloatingPayCard({
   amount,
   disabled,
+  isLoading,
   onPay,
   onClear,
   onPaymentMethod,
@@ -141,7 +143,11 @@ export default function FloatingPayCard({
   const surchargeAmount = amount > 0 ? Math.round(amount * SURCHARGE_RATE) : 0;
   const totalAmount = amount + taxAmount - discountAmount + surchargeAmount;
 
-  const buttonText = amount > 0 ? `Pay for ${formatAmount(totalAmount)}` : 'Pay';
+  const buttonText = isLoading
+    ? 'Initiating payment....'
+    : amount > 0
+      ? `Pay for ${formatAmount(totalAmount)}`
+      : 'Pay';
 
   // Toggle expanded with animation
   const toggleExpanded = () => {
@@ -367,12 +373,16 @@ export default function FloatingPayCard({
             </Animated.View>
 
             <TouchableOpacity
-              style={[styles.payButton, disabled && styles.payButtonDisabled]}
+              style={[
+                styles.payButton,
+                disabled && styles.payButtonDisabled,
+                isLoading && styles.payButtonLoading,
+              ]}
               onPress={onPay}
               activeOpacity={0.7}
-              disabled={disabled}
+              disabled={disabled || isLoading}
             >
-              <Text style={[styles.payText, disabled && styles.payTextDisabled]}>
+              <Text style={[styles.payText, disabled && !isLoading && styles.payTextDisabled]}>
                 {buttonText}
               </Text>
             </TouchableOpacity>
@@ -655,6 +665,9 @@ const styles = StyleSheet.create({
   },
   payButtonDisabled: {
     backgroundColor: colors.payButtonDisabled,
+  },
+  payButtonLoading: {
+    backgroundColor: colors.buttonLoadingBackground,
   },
   payText: {
     fontSize: 16,

@@ -45,7 +45,7 @@ export default function BottomSheet({
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
-          toValue: 0.3,
+          toValue: 0.15,
           duration: 200,
           useNativeDriver: true,
         }),
@@ -89,14 +89,17 @@ export default function BottomSheet({
             styles.sheet,
             {
               transform: [{ translateY }],
-              paddingBottom: insets.bottom + 16,
+              paddingBottom: insets.bottom > 0 ? insets.bottom : 16,
             },
           ]}
         >
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} />
+          <View style={styles.header}>
+            <Pressable onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeIcon}>×</Text>
+            </Pressable>
+            <Text style={styles.title}>{title}</Text>
+            <View style={styles.closeButton} />
           </View>
-          <Text style={styles.title}>{title}</Text>
           <View style={styles.content}>{children}</View>
         </Animated.View>
       </View>
@@ -104,7 +107,7 @@ export default function BottomSheet({
   );
 }
 
-// Sheet starts ~48px from top to show stacked main screen peeking
+// Sheet starts ~48px from top to show main screen peeking
 const SHEET_TOP_OFFSET = 48;
 
 const styles = StyleSheet.create({
@@ -122,23 +125,31 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     height: SCREEN_HEIGHT - SHEET_TOP_OFFSET,
   },
-  handleContainer: {
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 16,
+    justifyContent: 'space-between',
+    paddingTop: 16,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
   },
-  handle: {
-    width: 52,
-    height: 6,
-    backgroundColor: colors.grey200,
-    borderRadius: 32,
+  closeButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeIcon: {
+    fontSize: 28,
+    color: colors.textSecondary,
+    fontWeight: '300',
   },
   title: {
     fontSize: 16,
     fontWeight: '500',
     color: colors.textPrimary,
     textAlign: 'center',
-    paddingBottom: 16,
+    flex: 1,
   },
   content: {
     flex: 1,

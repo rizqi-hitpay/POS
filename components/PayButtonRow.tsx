@@ -6,6 +6,7 @@ import { colors } from '../constants/colors';
 interface PayButtonRowProps {
   amount: number;
   disabled: boolean;
+  isLoading?: boolean;
   onPay: () => void;
   onClear: () => void;
 }
@@ -18,8 +19,8 @@ function formatAmount(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-export default function PayButtonRow({ amount, disabled, onPay, onClear }: PayButtonRowProps) {
-  const showClear = amount > 0;
+export default function PayButtonRow({ amount, disabled, isLoading, onPay, onClear }: PayButtonRowProps) {
+  const showClear = amount > 0 && !isLoading;
   const animatedValue = useRef(new Animated.Value(showClear ? 1 : 0)).current;
 
   useEffect(() => {
@@ -31,7 +32,11 @@ export default function PayButtonRow({ amount, disabled, onPay, onClear }: PayBu
     }).start();
   }, [showClear, animatedValue]);
 
-  const buttonText = amount > 0 ? `Pay for ${formatAmount(amount)}` : 'Pay';
+  const buttonText = isLoading
+    ? 'Initiating payment....'
+    : amount > 0
+      ? `Pay for ${formatAmount(amount)}`
+      : 'Pay';
 
   // Animate clear button
   const clearButtonScale = animatedValue.interpolate({
@@ -77,12 +82,16 @@ export default function PayButtonRow({ amount, disabled, onPay, onClear }: PayBu
       </Animated.View>
 
       <TouchableOpacity
-        style={[styles.payButton, disabled && styles.payButtonDisabled]}
+        style={[
+          styles.payButton,
+          disabled && styles.payButtonDisabled,
+          isLoading && styles.payButtonLoading,
+        ]}
         onPress={onPay}
         activeOpacity={0.7}
-        disabled={disabled}
+        disabled={disabled || isLoading}
       >
-        <Text style={[styles.payText, disabled && styles.payTextDisabled]}>
+        <Text style={[styles.payText, disabled && !isLoading && styles.payTextDisabled]}>
           {buttonText}
         </Text>
       </TouchableOpacity>
@@ -119,6 +128,9 @@ const styles = StyleSheet.create({
   },
   payButtonDisabled: {
     backgroundColor: colors.payButtonDisabled,
+  },
+  payButtonLoading: {
+    backgroundColor: colors.buttonLoadingBackground,
   },
   payText: {
     fontSize: 16,

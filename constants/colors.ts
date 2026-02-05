@@ -12,6 +12,7 @@ export const colors = {
   primaryDark: '#002771',
 
   // Grays
+  grey50: '#F8F9FC',
   grey100: '#F2F2F4',
   grey200: '#E5E6EA',
   grey300: '#CBCDD4',
@@ -23,6 +24,9 @@ export const colors = {
   // Pay button disabled state
   payButtonDisabled: '#CCD4E3',
   payButtonTextDisabled: '#8093B8',
+
+  // Pay button loading state
+  buttonLoadingBackground: '#8093B8',
 
   // Tab bar
   tabActive: '#2465DE',
